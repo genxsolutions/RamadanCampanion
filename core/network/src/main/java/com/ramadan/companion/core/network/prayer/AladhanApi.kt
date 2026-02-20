@@ -1,6 +1,5 @@
 package com.ramadan.companion.core.network.prayer
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import retrofit2.http.GET
 import retrofit2.http.Query
