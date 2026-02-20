@@ -10,8 +10,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
+/** Default location (Mecca) when device location is unavailable (e.g. permission denied). */
+private const val DEFAULT_LAT = 21.4225
+private const val DEFAULT_LON = 39.8262
+
 /**
  * Fetches prayer times from Aladhan API using current location.
+ * Falls back to default location when location is unavailable so prayer times and progress still show.
  * Caches result for the day; refresh on demand or when date changes.
  */
 class PrayerTimeRepositoryImpl @Inject constructor(
@@ -45,9 +50,18 @@ class PrayerTimeRepositoryImpl @Inject constructor(
     override suspend fun refreshPrayerTimes() {
         val date = clock.todayDateKey()
         if (cachedDate == date && cache.value != null) return
+        var lat: Double
+        var lon: Double
         try {
             val loc = locationProvider.getCurrentLocation()
-            getPrayerTimes(loc.latitude, loc.longitude, date)
+            lat = loc.latitude
+            lon = loc.longitude
+        } catch (_: Exception) {
+            lat = DEFAULT_LAT
+            lon = DEFAULT_LON
+        }
+        try {
+            getPrayerTimes(lat, lon, date)
         } catch (_: Exception) {
             // Keep last cache on failure (offline resilience)
         }
