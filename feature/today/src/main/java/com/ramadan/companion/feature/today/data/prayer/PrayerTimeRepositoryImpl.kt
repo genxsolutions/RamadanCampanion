@@ -38,7 +38,7 @@ class PrayerTimeRepositoryImpl @Inject constructor(
         val dateForApi = date.split("-").let { parts ->
             if (parts.size == 3) "${parts[2]}-${parts[1]}-${parts[0]}" else date
         }
-        val response = api.getTimings(latitude = lat, longitude = lon, date = dateForApi)
+         val response = api.getTimings(latitude = lat, longitude = lon, date = dateForApi)
         val times = mapToDomain(response, date)
         if (date == clock.todayDateKey()) {
             cache.value = times

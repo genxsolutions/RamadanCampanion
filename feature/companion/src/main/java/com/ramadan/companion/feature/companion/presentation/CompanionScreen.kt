@@ -1,5 +1,8 @@
 package com.ramadan.companion.feature.companion.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -31,7 +34,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -43,10 +45,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.ramadan.companion.core.designsystem.components.AnimatedStarsBackground
 import com.ramadan.companion.core.designsystem.components.RamadanCard
+import com.ramadan.companion.core.designsystem.theme.DesignSystemTypography
 import com.ramadan.companion.core.designsystem.theme.RamadanColors
-import com.ramadan.companion.core.designsystem.theme.RamadanTypography
+import com.ramadan.companion.core.designsystem.theme.Spacing
 
 private data class ChatMessageUi(
     val text: String,
@@ -78,8 +84,20 @@ fun CompanionScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        RamadanColors.NavyDeep,
+                        RamadanColors.NavyPrimary,
+                        RamadanColors.NavyVariant
+                    )
+                )
+            )
     ) {
+        AnimatedStarsBackground(
+            modifier = Modifier.fillMaxSize(),
+            maxAlpha = 0.07f
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -89,19 +107,19 @@ fun CompanionScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                    .padding(horizontal = Spacing.lg, vertical = Spacing.lg),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 CompanionAvatar()
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.md))
                 Text(
                     text = "Your AI Companion",
-                    style = RamadanTypography.headlineMedium,
+                    style = DesignSystemTypography.heroGreeting,
                     color = RamadanColors.TextPrimary
                 )
                 Text(
                     text = "Here to guide your day",
-                    style = RamadanTypography.labelSmall,
+                    style = DesignSystemTypography.caption,
                     color = RamadanColors.Gold.copy(alpha = 0.7f)
                 )
             }
@@ -110,23 +128,37 @@ fun CompanionScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = Spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 messages.forEach { msg ->
-                    ChatBubble(
-                        text = msg.text,
-                        time = msg.time,
-                        isFromUser = msg.isFromUser
-                    )
+                    if (msg.isFromUser) {
+                        ChatBubble(
+                            text = msg.text,
+                            time = msg.time,
+                            isFromUser = true
+                        )
+                    } else {
+                        val slidePx = with(LocalDensity.current) { 8.dp.roundToPx() }
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { slidePx })
+                        ) {
+                            ChatBubble(
+                                text = msg.text,
+                                time = msg.time,
+                                isFromUser = false
+                            )
+                        }
+                    }
                 }
 
                 // Suggestion cards
                 Text(
                     text = "Suggestions for you:",
-                    style = RamadanTypography.labelSmall,
+                    style = DesignSystemTypography.caption,
                     color = RamadanColors.Gold.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(top = Spacing.xs, bottom = Spacing.xs)
                 )
                 suggestions.forEach { card ->
                     SuggestionCard(
@@ -134,7 +166,7 @@ fun CompanionScreen(
                         subtitle = card.subtitle,
                         icon = card.icon
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(Spacing.sm))
                 }
             }
 
@@ -154,15 +186,15 @@ fun CompanionScreen(
                         )
                     )
                 )
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(horizontal = Spacing.lg, vertical = Spacing.md)
         ) {
             // Quick prompts row (horizontal scroll)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
-                    .padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(bottom = Spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
             ) {
                 quickPrompts.forEach { prompt ->
                     QuickPromptChip(text = prompt)
@@ -172,7 +204,7 @@ fun CompanionScreen(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
                 OutlinedTextField(
                     value = "",
@@ -181,7 +213,7 @@ fun CompanionScreen(
                     placeholder = {
                         Text(
                             "Share what's on your mind...",
-                            style = RamadanTypography.bodyMedium,
+                            style = DesignSystemTypography.body,
                             color = RamadanColors.Gold.copy(alpha = 0.4f)
                         )
                     },
@@ -225,9 +257,24 @@ private fun CompanionAvatar() {
         label = "rotation"
     )
     Box(
-        modifier = Modifier.size(96.dp),
+        modifier = Modifier.size(112.dp),
         contentAlignment = Alignment.Center
     ) {
+        // Soft glow behind avatar
+        Box(
+            modifier = Modifier
+                .size(96.dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            RamadanColors.Gold.copy(alpha = 0.25f),
+                            RamadanColors.Gold.copy(alpha = 0.08f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = CircleShape
+                )
+        )
         Box(
             modifier = Modifier
                 .size(96.dp)
@@ -277,7 +324,6 @@ private fun ChatBubble(
     ) {
         Box(
             modifier = Modifier
-                .padding(horizontal = if (isFromUser) 0.dp else 0.dp)
                 .widthIn(max = 280.dp)
                 .background(
                     color = if (isFromUser)
@@ -292,19 +338,21 @@ private fun ChatBubble(
                     else RamadanColors.BorderGold.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(24.dp)
                 )
-                .padding(16.dp)
+                .padding(Spacing.md)
         ) {
             Column {
                 Text(
                     text = text,
-                    style = RamadanTypography.bodyMedium,
+                    style = DesignSystemTypography.body.copy(
+                        lineHeight = 19.6.sp
+                    ),
                     color = RamadanColors.TextPrimary
                 )
                 Text(
                     text = time,
-                    style = RamadanTypography.labelSmall,
+                    style = DesignSystemTypography.caption,
                     color = RamadanColors.Gold.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = Spacing.xs)
                 )
             }
         }
@@ -321,11 +369,11 @@ private fun SuggestionCard(
         modifier = Modifier.fillMaxWidth(),
         onClick = null,
         cornerRadius = 24.dp,
-        contentPadding = 16.dp
+        contentPadding = Spacing.md
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -341,12 +389,12 @@ private fun SuggestionCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = RamadanTypography.bodyMedium,
+                    style = DesignSystemTypography.cardTitle,
                     color = RamadanColors.TextPrimary
                 )
                 Text(
                     text = subtitle,
-                    style = RamadanTypography.labelSmall,
+                    style = DesignSystemTypography.caption,
                     color = RamadanColors.Gold.copy(alpha = 0.6f)
                 )
             }
@@ -363,11 +411,11 @@ private fun QuickPromptChip(text: String) {
                 RoundedCornerShape(20.dp)
             )
             .border(1.dp, RamadanColors.BorderGold.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(horizontal = Spacing.md, vertical = 10.dp)
     ) {
         Text(
             text = text,
-            style = RamadanTypography.labelSmall,
+            style = DesignSystemTypography.caption,
             color = RamadanColors.Gold
         )
     }

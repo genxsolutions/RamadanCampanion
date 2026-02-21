@@ -22,6 +22,24 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ramadan.companion.core.designsystem.theme.RamadanColors
 
+/** Dark navy base + subtle purple overlay + gold accent. For first (prayer) card. */
+val RamadanCardGradientFirst = Brush.verticalGradient(
+    colors = listOf(
+        RamadanColors.NavyCard.copy(alpha = 0.95f),
+        RamadanColors.PurpleAccent.copy(alpha = 0.6f),
+        RamadanColors.PurpleAccentDark.copy(alpha = 0.5f)
+    )
+)
+
+/** Slightly lighter gradient + soft overlay. For second card. */
+val RamadanCardGradientSecond = Brush.verticalGradient(
+    colors = listOf(
+        RamadanColors.PurpleAccent.copy(alpha = 0.55f),
+        RamadanColors.PurpleAccentDark.copy(alpha = 0.45f),
+        RamadanColors.NavyCard.copy(alpha = 0.85f)
+    )
+)
+
 @Composable
 fun RamadanCard(
     modifier: Modifier = Modifier,
@@ -32,8 +50,8 @@ fun RamadanCard(
             RamadanColors.PurpleAccentDark.copy(alpha = 0.6f)
         )
     ),
-    borderColor: Color = RamadanColors.BorderGold.copy(alpha = 0.1f),
-    cornerRadius: Dp = 28.dp,
+    borderColor: Color = RamadanColors.BorderGold.copy(alpha = 0.12f),
+    cornerRadius: Dp = 24.dp,
     contentPadding: Dp = 20.dp,
     content: @Composable BoxScope.() -> Unit
 ) {
