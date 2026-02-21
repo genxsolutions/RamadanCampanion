@@ -1,6 +1,8 @@
 package com.ramadan.companion.core.designsystem.components
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -18,16 +20,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.ramadan.companion.core.designsystem.theme.DesignSystemTypography
 import com.ramadan.companion.core.designsystem.theme.RamadanColors
-import com.ramadan.companion.core.designsystem.theme.RamadanTypography
 
 /**
- * Reusable circular progress component for the Today screen.
- * Animates from 0 to [progress] every time the composable enters composition
- * (first launch or when navigating back to the Today tab).
- * Visually centered when wrapped in a Box with contentAlignment = Center.
+ * Premium progress circle with zoom-in on first composition, subtle breathing
+ * loop, and smooth arc animation. Center content uses graphicsLayer for scale
+ * to avoid recomposition storm.
  */
 @Composable
 fun ProgressCircle(
@@ -39,25 +41,51 @@ fun ProgressCircle(
     trackColor: Color = RamadanColors.PurpleAccent.copy(alpha = 0.4f),
     label: String = "Today's Progress"
 ) {
-    val animatable = remember { Animatable(0f) }
     val targetProgress = progress.coerceIn(0f, 1f)
+    val arcAnimatable = remember { Animatable(0f) }
+    val scaleAnimatable = remember { Animatable(0.85f) }
 
+    // Arc: animate from 0 to target independently
     LaunchedEffect(targetProgress) {
-        animatable.snapTo(0f)
-        animatable.animateTo(
+        arcAnimatable.snapTo(0f)
+        arcAnimatable.animateTo(
             targetValue = targetProgress,
             animationSpec = tween(durationMillis = 900)
         )
     }
-    val animatedProgress = animatable.value
+
+    // Zoom-in on first composition, then start breathing
+    LaunchedEffect(Unit) {
+        scaleAnimatable.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
+        // Infinite breathing: 1f <-> 1.03f, subtle
+        while (true) {
+            scaleAnimatable.animateTo(
+                targetValue = 1.03f,
+                animationSpec = tween(durationMillis = 2200)
+            )
+            scaleAnimatable.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 2200)
+            )
+        }
+    }
+
+    val animatedProgress = arcAnimatable.value
+    val scale = scaleAnimatable.value
 
     Box(
         modifier = modifier.size(size),
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.size(size)) {
-            val radius = (size.toPx() - strokeWidth.toPx()) / 2f
-            val center = Offset(size.toPx() / 2f, size.toPx() / 2f)
+            val radius = (this.size.width - strokeWidth.toPx()) / 2f
+            val center = Offset(this.size.width / 2f, this.size.height / 2f)
             rotate(-90f) {
                 drawCircle(
                     color = trackColor,
@@ -82,15 +110,21 @@ fun ProgressCircle(
                 )
             }
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 text = "${(animatedProgress * 100).toInt()}%",
-                style = RamadanTypography.headlineLarge,
+                style = DesignSystemTypography.heroGreeting,
                 color = RamadanColors.Gold
             )
             Text(
                 text = label,
-                style = RamadanTypography.labelSmall,
+                style = DesignSystemTypography.caption,
                 color = RamadanColors.TextSecondary
             )
         }
