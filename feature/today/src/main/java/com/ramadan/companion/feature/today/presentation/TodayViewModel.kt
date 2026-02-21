@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.ramadan.companion.core.database.preferences.UserPreferencesDataSource
 import com.ramadan.companion.domain.plan.GenerateTodayPlanUseCase
 import com.ramadan.companion.domain.plan.model.EnergyLevel
+import com.ramadan.companion.domain.plan.model.TodayPlan
 import com.ramadan.companion.domain.plan.model.UserContext
 import com.ramadan.companion.domain.prayer.GetNextPrayerUseCase
 import com.ramadan.companion.domain.prayer.model.NextPrayerInfo
@@ -48,7 +49,7 @@ class TodayViewModel @Inject constructor(
     private val _events = MutableSharedFlow<TodaySideEffect>(replay = 0)
     val events = _events
 
-    private val cachedPlan = MutableStateFlow<com.ramadan.companion.domain.plan.model.TodayPlan?>(null)
+    private val cachedPlan = MutableStateFlow<TodayPlan?>(null)
     private var planJob: Job? = null
 
     init {
