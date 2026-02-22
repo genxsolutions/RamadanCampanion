@@ -1,14 +1,20 @@
 package com.ramadan.companion.feature.companion.data
 
+import com.ramadan.companion.core.ai.AIService
+import com.ramadan.companion.core.ai.AiApiKey
+import com.ramadan.companion.core.ai.AiMessage
+import com.ramadan.companion.core.ai.AiRequest
 import com.ramadan.companion.domain.companion.AiCompanionRepository
 import com.ramadan.companion.domain.companion.DailyContext
 import javax.inject.Inject
 
 /**
- * Fake AI repository used during early development.
- * Returns gentle, wellness-style suggestions without hitting a real backend.
+ * AI Companion repository: uses real API when [apiKey] is set, otherwise fallback text.
  */
-class FakeAiCompanionRepository @Inject constructor() : AiCompanionRepository {
+class FakeAiCompanionRepository @Inject constructor(
+    private val api: AIService,
+    @AiApiKey private val apiKey: String
+) : AiCompanionRepository {
 
     override suspend fun getDailySuggestion(context: DailyContext): String {
         val focus = when {
@@ -36,5 +42,40 @@ class FakeAiCompanionRepository @Inject constructor() : AiCompanionRepository {
             append(reflectionHint)
         }.trim()
     }
+
+    override suspend fun sendMessage(userMessage: String, history: List<Pair<String, String>>): String {
+        if (apiKey.isBlank()) {
+            return fallbackReply()
+        }
+        return try {
+            val messages = mutableListOf<AiMessage>()
+            messages.add(
+                AiMessage(
+                    role = "system",
+                    content = "You are a gentle, supportive spiritual wellness companion for Ramadan. " +
+                        "Keep replies concise, warm, and uplifting. Use 1-3 short paragraphs."
+                )
+            )
+            history.forEach { (user, assistant) ->
+                messages.add(AiMessage(role = "user", content = user))
+                messages.add(AiMessage(role = "assistant", content = assistant))
+            }
+            messages.add(AiMessage(role = "user", content = userMessage))
+            val request = AiRequest(
+                messages = messages,
+                max_tokens = 320
+            )
+            val response = api.getCompletion(
+                authorization = "Bearer $apiKey",
+                body = request
+            )
+            response.choices?.firstOrNull()?.message?.content?.trim() ?: fallbackReply()
+        } catch (_: Exception) {
+            fallbackReply()
+        }
+    }
+
+    private fun fallbackReply(): String =
+        "I'm here for you. Take a moment to breathe, and whenever you're ready, share a little more."
 }
 
