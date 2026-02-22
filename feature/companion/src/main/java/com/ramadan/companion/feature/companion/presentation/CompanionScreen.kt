@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -38,8 +39,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -54,12 +58,6 @@ import com.ramadan.companion.core.designsystem.theme.DesignSystemTypography
 import com.ramadan.companion.core.designsystem.theme.RamadanColors
 import com.ramadan.companion.core.designsystem.theme.Spacing
 
-private data class ChatMessageUi(
-    val text: String,
-    val isFromUser: Boolean,
-    val time: String
-)
-
 private data class SuggestionCardUi(
     val title: String,
     val subtitle: String,
@@ -69,9 +67,11 @@ private data class SuggestionCardUi(
 @Composable
 fun CompanionScreen(
     onUpClick: () -> Unit = {},
+    viewModel: CompanionViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val messages = rememberCompanionMessages()
+    val state by viewModel.state.collectAsState()
+    val messages = state.messages
     val suggestions = rememberSuggestionCards()
     val quickPrompts = listOf(
         "5-minute ibadah plan",
@@ -207,8 +207,8 @@ fun CompanionScreen(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = state.inputText,
+                    onValueChange = viewModel::updateInput,
                     modifier = Modifier.weight(1f),
                     placeholder = {
                         Text(
@@ -224,20 +224,38 @@ fun CompanionScreen(
                         unfocusedTextColor = RamadanColors.TextPrimary,
                         cursorColor = RamadanColors.Gold
                     ),
-                    shape = RoundedCornerShape(24.dp)
+                    shape = RoundedCornerShape(24.dp),
+                    enabled = !state.isLoading
                 )
                 Box(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(RamadanColors.Gold),
+                        .background(
+                            if (state.isLoading) RamadanColors.Gold.copy(alpha = 0.5f)
+                            else RamadanColors.Gold
+                        )
+                        .then(
+                            if (!state.isLoading) Modifier.clickable(enabled = state.inputText.isNotBlank()) {
+                                viewModel.sendMessage()
+                            } else Modifier
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.Send,
-                        contentDescription = "Send",
-                        tint = RamadanColors.NavyPrimary
-                    )
+                    if (state.isLoading) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = RamadanColors.NavyPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Send,
+                            contentDescription = "Send",
+                            modifier = Modifier.size(24.dp),
+                            tint = RamadanColors.NavyPrimary
+                        )
+                    }
                 }
             }
         }
