@@ -43,7 +43,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -438,20 +437,6 @@ private fun QuickPromptChip(text: String) {
         )
     }
 }
-
-@Composable
-private fun rememberCompanionMessages(): List<ChatMessageUi> = listOf(
-    ChatMessageUi(
-        text = "It's okay if today was busy. Let's rebuild your day together.",
-        isFromUser = false,
-        time = "2:30 PM"
-    ),
-    ChatMessageUi(
-        text = "I missed Dhuhr prayer because of work",
-        isFromUser = true,
-        time = "2:28 PM"
-    )
-)
 
 @Composable
 private fun rememberSuggestionCards(): List<SuggestionCardUi> = listOf(
