@@ -196,7 +196,7 @@ private fun TodayContent(
                 RamadanCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 88.dp),
+                        .heightIn(min = 100.dp),
                     onClick = null,
                     gradient = RamadanCardGradientFirst,
                     cornerRadius = 24.dp,
@@ -209,7 +209,7 @@ private fun TodayContent(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
+                                .size(60.dp)
                                 .clip(CircleShape)
                                 .background(RamadanColors.PurpleAccent.copy(alpha = 0.5f))
                                 .padding(Spacing.xs),
@@ -231,7 +231,7 @@ private fun TodayContent(
                             Text(
                                 text = prayerName,
                                 style = DesignSystemTypography.heroGreeting.copy(
-                                    fontSize = 22.sp,
+                                    fontSize = 24.sp,
                                     lineHeight = 28.sp
                                 ),
                                 color = RamadanColors.TextPrimary
@@ -253,7 +253,7 @@ private fun TodayContent(
                 RamadanCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 88.dp),
+                        .heightIn(min = 100.dp),
                     onClick = null,
                     gradient = RamadanCardGradientSecond,
                     cornerRadius = 24.dp,
@@ -266,7 +266,7 @@ private fun TodayContent(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
+                                .size(60.dp)
                                 .clip(CircleShape)
                                 .background(RamadanColors.PurpleAccent.copy(alpha = 0.5f))
                                 .padding(Spacing.xs),
