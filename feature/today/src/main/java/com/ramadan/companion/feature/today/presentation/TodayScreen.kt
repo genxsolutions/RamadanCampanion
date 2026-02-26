@@ -140,7 +140,7 @@ private fun TodayContent(
                         color = RamadanColors.TextPrimary
                     )
                     Text(
-                        text = "Day ${state.ramadanDay} of Ramadan",
+                        text = if (state.ramadanDay in 1..30) "Day ${state.ramadanDay} of Ramadan" else "Ramadan",
                         style = DesignSystemTypography.ramadanDayText,
                         color = RamadanColors.Gold,
                         modifier = Modifier.padding(top = Spacing.xxs)

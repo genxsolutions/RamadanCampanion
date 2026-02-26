@@ -3,8 +3,10 @@ package com.ramadan.companion.feature.today.di
 import com.ramadan.companion.domain.plan.repository.AiPlannerRepository
 import com.ramadan.companion.domain.prayer.repository.PrayerTimeRepository
 import com.ramadan.companion.domain.time.Clock
+import com.ramadan.companion.domain.time.RamadanDayProvider
 import com.ramadan.companion.feature.today.data.plan.AiPlannerRepositoryImpl
 import com.ramadan.companion.feature.today.data.prayer.PrayerTimeRepositoryImpl
+import com.ramadan.companion.feature.today.data.time.RamadanDayProviderImpl
 import com.ramadan.companion.feature.today.data.time.SystemClock
 import dagger.Binds
 import dagger.Module
@@ -27,4 +29,8 @@ abstract class TodayModule {
     @Binds
     @Singleton
     abstract fun bindAiPlannerRepository(impl: AiPlannerRepositoryImpl): AiPlannerRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRamadanDayProvider(impl: RamadanDayProviderImpl): RamadanDayProvider
 }

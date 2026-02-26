@@ -11,6 +11,7 @@ import com.ramadan.companion.domain.prayer.model.NextPrayerInfo
 import com.ramadan.companion.domain.prayer.repository.PrayerTimeRepository
 import com.ramadan.companion.domain.preferences.repository.UserPreferencesRepository
 import com.ramadan.companion.domain.time.Clock
+import com.ramadan.companion.domain.time.RamadanDayProvider
 import com.ramadan.companion.domain.today.model.QuickAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -38,6 +39,7 @@ class TodayViewModel @Inject constructor(
     private val prayerTimeRepository: PrayerTimeRepository,
     private val getNextPrayerUseCase: GetNextPrayerUseCase,
     private val clock: Clock,
+    private val ramadanDayProvider: RamadanDayProvider,
     private val generateTodayPlanUseCase: GenerateTodayPlanUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val userPreferencesDataSource: UserPreferencesDataSource
@@ -101,7 +103,7 @@ class TodayViewModel @Inject constructor(
                         preferences = prefs,
                         currentTimeMinutes = clock.currentMinutesOfDay(),
                         nextPrayer = next.name,
-                        ramadanDay = ramadanDayFromDate(clock.todayDateKey())
+                        ramadanDay = ramadanDayProvider.getRamadanDay()
                     )
                     try {
                         cachedPlan.value = generateTodayPlanUseCase(context)
@@ -147,7 +149,7 @@ class TodayViewModel @Inject constructor(
             isLoading = false,
             errorMessage = _state.value.errorMessage,
             userName = userName,
-            ramadanDay = ramadanDayFromDate(clock.todayDateKey()),
+            ramadanDay = ramadanDayProvider.getRamadanDay(),
             progressPercent = progressPercent,
             nextPrayer = nextPrayerStr,
             suggestedIbadah = suggestedIbadahStr,
@@ -161,28 +163,6 @@ class TodayViewModel @Inject constructor(
         if (end <= start) return 0f
         val progress = (currentMinutes - start).toFloat() / (end - start)
         return progress.coerceIn(0f, 1f)
-    }
-
-    private fun ramadanDayFromDate(dateKey: String): Int {
-        val parts = dateKey.split("-").mapNotNull { it.toIntOrNull() }
-        if (parts.size != 3) return 14
-        val (y, m, d) = parts
-        val ramadanStart2025 = 1 to 3
-        val dayOfYear = when (m) {
-            1 -> d
-            2 -> 31 + d
-            3 -> 59 + d
-            4 -> 90 + d
-            5 -> 120 + d
-            6 -> 151 + d
-            7 -> 181 + d
-            else -> 0
-        }
-        val startDayOfYear = when (ramadanStart2025.first) {
-            3 -> 59 + ramadanStart2025.second
-            else -> 0
-        }
-        return ((dayOfYear - startDayOfYear).coerceAtLeast(0) % 30) + 1
     }
 
     private fun defaultQuickActions(): List<QuickAction> = listOf(
